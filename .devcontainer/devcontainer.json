@@ -11,6 +11,15 @@
     // "ghcr.io/devcontainers-extra/go": {
     //   "version": "1.24"
     // }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-azuretools.vscode-cosmosdb",
+        "cweijan.dbclient-jdbc",
+        "cweijan.vscode-database-client2"
+      ]
+    }
   }
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally.

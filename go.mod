@@ -1,3 +1,3 @@
-module github.com/gariani/mylist
+module github.com/gariani/my_list
 
-go 1.25.1
+go 1.24.9
