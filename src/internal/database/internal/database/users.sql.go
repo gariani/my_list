@@ -12,20 +12,26 @@ import (
 )
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (id, email)
-VALUES ($1, $2)
-RETURNING id, email, created_at
+INSERT INTO users (id, email, pass_hash)
+VALUES ($1, $2, $3)
+RETURNING id, email, created_at, pass_hash
 `
 
 type CreateUserParams struct {
-	ID    pgtype.UUID `json:"id"`
-	Email string      `json:"email"`
+	ID       pgtype.UUID `json:"id"`
+	Email    string      `json:"email"`
+	PassHash string      `json:"pass_hash"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, createUser, arg.ID, arg.Email)
+	row := q.db.QueryRow(ctx, createUser, arg.ID, arg.Email, arg.PassHash)
 	var i User
-	err := row.Scan(&i.ID, &i.Email, &i.CreatedAt)
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.CreatedAt,
+		&i.PassHash,
+	)
 	return i, err
 }
 
@@ -40,7 +46,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id pgtype.UUID) error {
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, email, created_at
+SELECT id, email, created_at, pass_hash
 FROM users
 WHERE id = $1
 `
@@ -48,12 +54,17 @@ WHERE id = $1
 func (q *Queries) GetUser(ctx context.Context, id pgtype.UUID) (User, error) {
 	row := q.db.QueryRow(ctx, getUser, id)
 	var i User
-	err := row.Scan(&i.ID, &i.Email, &i.CreatedAt)
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.CreatedAt,
+		&i.PassHash,
+	)
 	return i, err
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, email, created_at
+SELECT id, email, created_at, pass_hash
 FROM users
 ORDER BY created_at DESC
 `
@@ -67,7 +78,12 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 	var items []User
 	for rows.Next() {
 		var i User
-		if err := rows.Scan(&i.ID, &i.Email, &i.CreatedAt); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Email,
+			&i.CreatedAt,
+			&i.PassHash,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

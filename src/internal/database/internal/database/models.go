@@ -55,4 +55,5 @@ type User struct {
 	ID        pgtype.UUID      `json:"id"`
 	Email     string           `json:"email"`
 	CreatedAt pgtype.Timestamp `json:"created_at"`
+	PassHash  string           `json:"pass_hash"`
 }
