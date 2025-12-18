@@ -5,12 +5,13 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 var jwtAccessSecret = []byte(os.Getenv("JWT_ACCESS_SECRET"))
 var jwtRefreshSecret = []byte(os.Getenv("JWT_REFRESH_SECRET"))
 
-func GenerateAccessToken(userId string) (string, error) {
+func GenerateAccessToken(userId pgtype.UUID) (string, error) {
 	claims := jwt.MapClaims{
 		"user_id": userId,
 		"exp":     time.Now().Add(15 * time.Minute).Unix(),
@@ -20,7 +21,7 @@ func GenerateAccessToken(userId string) (string, error) {
 	return token.SignedString(jwtAccessSecret)
 }
 
-func GenerateRefreshToken(userId string) (string, error) {
+func GenerateRefreshToken(userId pgtype.UUID) (string, error) {
 	claims := jwt.MapClaims{"user_id": userId, "exp": time.Now().Add(7 * 24 * time.Hour).Unix()}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

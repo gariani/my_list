@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/gariani/my_list/src/internal/database"
 	"github.com/gariani/my_list/src/routers"
@@ -16,10 +17,17 @@ func main() {
 		panic(1)
 	}
 
-	database.Connect()
+	if err := database.Connect(); err != nil {
+		log.Fatal("Failed to connect to the DB", err)
+	}
+
+	defer database.DB.Close()
 
 	r := routers.SetupRouter()
-	r.RunTLS(":8080", "cert.pem", "key.pem")
+
+	if err := r.RunTLS(":8080", "cert.pem", "key.pem"); err != nil {
+		log.Fatal(err)
+	}
 
 	fmt.Println()
 

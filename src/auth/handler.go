@@ -5,6 +5,8 @@ import (
 
 	"github.com/gariani/my_list/src/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type LoginInput struct {
@@ -44,17 +46,21 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	accessToken, err := GenerateAccessToken(user.Id)
+	accessToken, err := GenerateAccessToken(user.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "token error"})
 		return
 	}
 
-	refreshToken, err := GenerateRefreshToken(user.Id)
+	refreshToken, err := GenerateRefreshToken(user.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "token error"})
 		return
 	}
+
+	csrfToken := uuid.New().String()
+	c.SetCookie("csrf_token", csrfToken, 3600, "/", "", true, false)
+
 	c.SetCookie("access_token", accessToken, 900, "/", "", true, true)
 	c.SetCookie("refresh_token", refreshToken, 3600*24*7, "/", "", true, true)
 
@@ -66,26 +72,29 @@ func Refresh(c *gin.Context) {
 	refreshToken, err := c.Cookie("refresh_token")
 
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "no refresh token"})
-		return
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "no refresh token"})
 	}
 
 	claims, valid := ValidateRefreshToken(refreshToken)
 	if !valid {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid refresh token"})
-		return
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid refresh token"})
 	}
 
-	userId, ok := claims["user_id"].(string)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid refresh token claims"})
-		return
+	userIdStr, exists := claims["user_id"].(string)
+	if !exists {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid refresh token claims"})
+	}
+
+	var userId pgtype.UUID
+	err = userId.Scan(userIdStr)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid user id"})
 	}
 
 	newAccess, err := GenerateAccessToken(userId)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not generate access token"})
-		return
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "could not generate access token"})
 	}
 
 	c.SetCookie("access_token", newAccess, 900, "/", "", true, true)
