@@ -55,7 +55,7 @@ func (q *Queries) ListItemTags(ctx context.Context, itemID pgtype.UUID) ([]Tag, 
 }
 
 const listItemsByTag = `-- name: ListItemsByTag :many
-SELECT i.id, i.list_id, i.user_id, i.type_id, i.title, i.content, i.url, i.thumbnail, i.created_at, i.updated_at
+SELECT i.id, i.list_id, i.type_id, i.title, i.content, i.url, i.thumbnail, i.created_at, i.updated_at
 FROM item_tags it
 JOIN items i ON it.item_id = i.id
 WHERE it.tag_id = $1
@@ -74,7 +74,6 @@ func (q *Queries) ListItemsByTag(ctx context.Context, tagID pgtype.UUID) ([]Item
 		if err := rows.Scan(
 			&i.ID,
 			&i.ListID,
-			&i.UserID,
 			&i.TypeID,
 			&i.Title,
 			&i.Content,

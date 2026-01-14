@@ -1,10 +1,9 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS items (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     list_id UUID REFERENCES lists(id),
-    user_id UUID REFERENCES users(id),
-    type_id INT REFERENCES item_types(id),
+    type_id UUID REFERENCES item_types(id),
     title TEXT,
     content TEXT,
     url TEXT,

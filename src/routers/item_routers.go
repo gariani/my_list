@@ -1,7 +1,27 @@
 package routers
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gariani/my_list/src/internal/database"
+	"github.com/gariani/my_list/src/items"
+	"github.com/gariani/my_list/src/middleware"
+	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
 
-func ItemsRouters(r *gin.Engine) {
+func ItemsRouters(r *gin.Engine, pool *pgxpool.Pool, queries *database.Queries) {
+	api := r.Group("/api")
+
+	v1 := api.Group(("/v1"))
+
+	v1.Use(middleware.AuthRequired(), middleware.VerifyCSRF())
+
+	list := v1.Group("/lists/:id")
+
+	itemService := items.NewService(queries)
+
+	list.GET("/items", items.GeAllItemsByListHandler(itemService))
+	// v1.GET("/lists", lists.GetListsHandler(listService))
+	// v1.POST("/list", lists.CreateUserList(listService))
+	// v1.DELETE("/list/:id", lists.DeleteList(listService))
 
 }

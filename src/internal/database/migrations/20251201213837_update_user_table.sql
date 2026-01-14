@@ -5,5 +5,5 @@ ALTER TABLE users ADD COLUMN pass_hash TEXT NOT NULL;
 
 -- +goose Down
 -- +goose StatementBegin
-ALTER TABLE users DROP COLUMN pass_hash;
+ALTER TABLE users DROP COLUMN IF EXISTS pass_hash;
 -- +goose StatementEnd

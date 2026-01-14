@@ -14,94 +14,108 @@ type LoginInput struct {
 	Password string `json:"password" binding:"required"`
 }
 
-func Register(c *gin.Context) {
+func Register(s *Service) gin.HandlerFunc {
 
-	var input LoginInput
+	return func(c *gin.Context) {
 
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
-		return
+		var input LoginInput
+
+		if err := c.ShouldBindJSON(&input); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			return
+		}
+
+		if err := s.RegisterUser(input.Email, input.Password); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "email already used"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "user created"})
+
 	}
-
-	if err := RegisterUser(input.Email, input.Password); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "email already used"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "user created"})
-
 }
 
-func Login(c *gin.Context) {
-	var input LoginInput
+func Login(s *Service) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var input LoginInput
 
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
-		return
+		if err := c.ShouldBindJSON(&input); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			return
+		}
+
+		user, err := s.GetUserByEmail(input.Email)
+		if err != nil || !utils.CheckPassword(user.PassHash, input.Password) {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+			return
+		}
+
+		accessToken, err := GenerateAccessToken(user.ID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "token error"})
+			return
+		}
+
+		refreshToken, err := GenerateRefreshToken(user.ID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "token error"})
+			return
+		}
+
+		csrfToken := uuid.New().String()
+		c.SetCookie("csrf_token", csrfToken, 3600, "/", "", true, false)
+
+		c.SetCookie("access_token", accessToken, 900, "/", "", true, true)
+		c.SetCookie("refresh_token", refreshToken, 3600*24*7, "/", "", true, true)
+
+		c.JSON(http.StatusOK, gin.H{"message": "logged in"})
+
 	}
-
-	user, err := GetUserByEmail(input.Email)
-	if err != nil || !utils.CheckPassword(user.PassHash, input.Password) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
-		return
-	}
-
-	accessToken, err := GenerateAccessToken(user.ID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "token error"})
-		return
-	}
-
-	refreshToken, err := GenerateRefreshToken(user.ID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "token error"})
-		return
-	}
-
-	csrfToken := uuid.New().String()
-	c.SetCookie("csrf_token", csrfToken, 3600, "/", "", true, false)
-
-	c.SetCookie("access_token", accessToken, 900, "/", "", true, true)
-	c.SetCookie("refresh_token", refreshToken, 3600*24*7, "/", "", true, true)
-
-	c.JSON(http.StatusOK, gin.H{"message": "logged in"})
-
 }
 
-func Refresh(c *gin.Context) {
-	refreshToken, err := c.Cookie("refresh_token")
+func Refresh(s *Service) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		refreshToken, err := c.Cookie("refresh_token")
 
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "no refresh token"})
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "no refresh token"})
+			return
+		}
+
+		claims, valid := ValidateRefreshToken(refreshToken)
+		if !valid {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid refresh token"})
+			return
+		}
+
+		userIdStr, exists := claims["user_id"].(string)
+		if !exists {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid refresh token claims"})
+			return
+		}
+
+		var userId pgtype.UUID
+		err = userId.Scan(userIdStr)
+
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid user id"})
+			return
+		}
+
+		newAccess, err := GenerateAccessToken(userId)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "could not generate access token"})
+			return
+		}
+
+		c.SetCookie("access_token", newAccess, 900, "/", "", true, true)
 	}
-
-	claims, valid := ValidateRefreshToken(refreshToken)
-	if !valid {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid refresh token"})
-	}
-
-	userIdStr, exists := claims["user_id"].(string)
-	if !exists {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid refresh token claims"})
-	}
-
-	var userId pgtype.UUID
-	err = userId.Scan(userIdStr)
-
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid user id"})
-	}
-
-	newAccess, err := GenerateAccessToken(userId)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "could not generate access token"})
-	}
-
-	c.SetCookie("access_token", newAccess, 900, "/", "", true, true)
 }
 
-func Logout(c *gin.Context) {
-	c.SetCookie("access_token", "", -1, "/", "", true, true)
-	c.SetCookie("refresh_token", "", -1, "/", "", true, true)
-	c.JSON(http.StatusOK, gin.H{"message": "logged out"})
+func Logout(s *Service) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.SetCookie("access_token", "", -1, "/", "", true, true)
+		c.SetCookie("refresh_token", "", -1, "/", "", true, true)
+		c.JSON(http.StatusOK, gin.H{"message": "logged out"})
+	}
 }

@@ -16,16 +16,18 @@ func GetListsHandler(svc *Service) gin.HandlerFunc {
 
 		if userId == "" {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "user id not informed"})
+			return
 		}
 
-		allLists, err := svc.GetAllLists(userId)
+		allLists, err := svc.GetAllListByUserId(userId)
 
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "error retrieving user's lists", "errorMsg": err})
+			return
 		}
 
-		if allLists == nil || len(*allLists) <= 0 {
-			allLists = &[]database.List{}
+		if len(allLists) <= 0 {
+			allLists = []database.List{}
 		}
 
 		c.JSON(http.StatusOK, gin.H{
@@ -34,7 +36,7 @@ func GetListsHandler(svc *Service) gin.HandlerFunc {
 	}
 }
 
-func CreateUserList(svc *Service) gin.HandlerFunc {
+func CreateUserListHandler(svc *Service) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 
@@ -42,25 +44,28 @@ func CreateUserList(svc *Service) gin.HandlerFunc {
 
 		if userId == "" {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "user id not informed"})
+			return
 		}
 
-		var req UserList
+		var req database.List
 
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
+			return
 		}
 
 		newReq, err := svc.CreateUserList(userId, &req)
 
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
+			return
 		}
 
 		c.JSON(http.StatusCreated, newReq)
 	}
 }
 
-func DeleteList(svc *Service) gin.HandlerFunc {
+func DeleteListHandler(svc *Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		listId := c.Param("id")
 
@@ -68,11 +73,13 @@ func DeleteList(svc *Service) gin.HandlerFunc {
 
 		if err := id.Scan(listId); err != nil {
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "invalid list id"})
+			return
 		}
 
 		err := svc.DeleteList(id)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "list id not found"})
+			return
 		}
 
 		c.Status(http.StatusNoContent)
@@ -80,7 +87,7 @@ func DeleteList(svc *Service) gin.HandlerFunc {
 	}
 }
 
-func GetList(svc *Service) gin.HandlerFunc {
+func GetListHandler(svc *Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		listId := c.Param("id")
@@ -89,12 +96,14 @@ func GetList(svc *Service) gin.HandlerFunc {
 
 		if err := id.Scan(listId); err != nil {
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "invalid list id"})
+			return
 		}
 
 		list, err := svc.GetList(id)
 
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "list not found"})
+			return
 		}
 
 		c.JSON(http.StatusOK, list)

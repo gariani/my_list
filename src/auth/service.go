@@ -9,9 +9,22 @@ import (
 	"github.com/gariani/my_list/src/utils"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func RegisterUser(email, password string) error {
+type Service struct {
+	pool *pgxpool.Pool
+	q    *database.Queries
+}
+
+func NewService(pool *pgxpool.Pool, q *database.Queries) *Service {
+	return &Service{
+		pool: pool,
+		q:    q,
+	}
+}
+
+func (s *Service) RegisterUser(email, password string) error {
 	hashed, err := utils.HashPassword(password)
 
 	if err != nil {
@@ -19,7 +32,7 @@ func RegisterUser(email, password string) error {
 		return err
 	}
 
-	user, err := GetUserByEmail(email)
+	user, err := s.GetUserByEmail(email)
 
 	if err != nil && err != pgx.ErrNoRows {
 		log.Fatal("saving user", err.Error())
@@ -30,7 +43,7 @@ func RegisterUser(email, password string) error {
 		return errors.New("user already exists")
 	}
 
-	tx, err := database.DB.BeginTx(context.Background(), pgx.TxOptions{IsoLevel: pgx.Serializable, AccessMode: pgx.ReadWrite})
+	tx, err := s.pool.BeginTx(context.Background(), pgx.TxOptions{IsoLevel: pgx.Serializable, AccessMode: pgx.ReadWrite})
 
 	if err != nil {
 		return err
@@ -46,9 +59,9 @@ func RegisterUser(email, password string) error {
 	return tx.Commit(context.Background())
 }
 
-func GetUserByEmail(email string) (*database.User, error) {
+func (s *Service) GetUserByEmail(email string) (*database.User, error) {
 
-	tx, err := database.DB.BeginTx(context.Background(), pgx.TxOptions{IsoLevel: pgx.Serializable, AccessMode: pgx.ReadOnly})
+	tx, err := s.pool.BeginTx(context.Background(), pgx.TxOptions{IsoLevel: pgx.Serializable, AccessMode: pgx.ReadOnly})
 
 	if err != nil {
 		return nil, err

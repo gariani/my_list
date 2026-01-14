@@ -1,9 +1,8 @@
 -- name: CreateItem :one
 INSERT INTO items (
-    id, list_id, user_id, type_id,
-    title, content, url, thumbnail
+    list_id, type_id,title, content, url, thumbnail
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING *;
 
 -- name: GetItem :one
@@ -11,11 +10,12 @@ SELECT *
 FROM items
 WHERE id = $1;
 
--- name: ListItemsByList :many
-SELECT *
-FROM items
-WHERE list_id = $1
-ORDER BY created_at DESC;
+-- name: GetAllItemsByList :many
+SELECT i.*
+FROM items i
+JOIN lists l on i.list_id = l.id
+WHERE l.user_id = $1
+  AND l.id = $2;
 
 -- name: UpdateItem :one
 UPDATE items
@@ -29,5 +29,6 @@ WHERE id = $1
 RETURNING *;
 
 -- name: DeleteItem :exec
-DELETE FROM items
+DELETE FROM items i
 WHERE id = $1;
+

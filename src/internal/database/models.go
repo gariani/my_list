@@ -11,8 +11,7 @@ import (
 type Item struct {
 	ID        pgtype.UUID      `json:"id"`
 	ListID    pgtype.UUID      `json:"list_id"`
-	UserID    pgtype.UUID      `json:"user_id"`
-	TypeID    pgtype.Int4      `json:"type_id"`
+	TypeID    pgtype.UUID      `json:"type_id"`
 	Title     pgtype.Text      `json:"title"`
 	Content   pgtype.Text      `json:"content"`
 	Url       pgtype.Text      `json:"url"`
@@ -34,7 +33,7 @@ type ItemTag struct {
 }
 
 type ItemType struct {
-	ID          int32       `json:"id"`
+	ID          pgtype.UUID `json:"id"`
 	Name        string      `json:"name"`
 	Description pgtype.Text `json:"description"`
 }

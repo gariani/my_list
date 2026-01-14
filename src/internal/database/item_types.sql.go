@@ -34,7 +34,7 @@ DELETE FROM item_types
 WHERE id = $1
 `
 
-func (q *Queries) DeleteItemType(ctx context.Context, id int32) error {
+func (q *Queries) DeleteItemType(ctx context.Context, id pgtype.UUID) error {
 	_, err := q.db.Exec(ctx, deleteItemType, id)
 	return err
 }
@@ -45,7 +45,7 @@ FROM item_types
 WHERE id = $1
 `
 
-func (q *Queries) GetItemType(ctx context.Context, id int32) (ItemType, error) {
+func (q *Queries) GetItemType(ctx context.Context, id pgtype.UUID) (ItemType, error) {
 	row := q.db.QueryRow(ctx, getItemType, id)
 	var i ItemType
 	err := row.Scan(&i.ID, &i.Name, &i.Description)

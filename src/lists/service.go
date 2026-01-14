@@ -6,19 +6,22 @@ import (
 	"github.com/gariani/my_list/src/internal/database"
 	"github.com/gariani/my_list/src/utils"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Service struct {
+	pool  *pgxpool.Pool
 	query *database.Queries
 }
 
-func NewService(q *database.Queries) *Service {
+func NewService(p *pgxpool.Pool, q *database.Queries) *Service {
 	return &Service{
+		pool:  p,
 		query: q,
 	}
 }
 
-func (s *Service) GetAllLists(id string) (*[]database.List, error) {
+func (s *Service) GetAllListByUserId(id string) ([]database.List, error) {
 
 	var userId pgtype.UUID
 	err := userId.Scan(id)
@@ -32,11 +35,10 @@ func (s *Service) GetAllLists(id string) (*[]database.List, error) {
 		return nil, err
 	}
 
-	return &allLists, nil
-
+	return allLists, nil
 }
 
-func (s *Service) CreateUserList(id string, list *UserList) (*UserList, error) {
+func (s *Service) CreateUserList(id string, list *database.List) (*database.List, error) {
 
 	var userId pgtype.UUID
 
@@ -51,7 +53,7 @@ func (s *Service) CreateUserList(id string, list *UserList) (*UserList, error) {
 	listParam.Name = list.Name
 	listParam.UserID = userId
 
-	tx, err := database.DB.Begin(context.Background())
+	tx, err := s.pool.Begin(context.Background())
 
 	if err != nil {
 		return nil, err
@@ -67,10 +69,10 @@ func (s *Service) CreateUserList(id string, list *UserList) (*UserList, error) {
 		return nil, err
 	}
 
-	newList := &UserList{}
-	newList.Id = query.ID.String()
+	newList := &database.List{}
+	newList.ID = query.ID
 	newList.Name = query.Name
-	newList.UserId = query.UserID.String()
+	newList.UserID = query.UserID
 
 	return newList, tx.Commit(context.Background())
 
@@ -78,7 +80,7 @@ func (s *Service) CreateUserList(id string, list *UserList) (*UserList, error) {
 
 func (s *Service) DeleteList(id pgtype.UUID) error {
 
-	tx, err := database.DB.Begin(context.Background())
+	tx, err := s.pool.Begin(context.Background())
 
 	if err != nil {
 		return err
@@ -96,7 +98,7 @@ func (s *Service) DeleteList(id pgtype.UUID) error {
 }
 
 func (s *Service) GetList(id pgtype.UUID) (*database.List, error) {
-	tx, err := database.DB.Begin(context.Background())
+	tx, err := s.pool.Begin(context.Background())
 
 	if err != nil {
 		return nil, err

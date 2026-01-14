@@ -13,18 +13,15 @@ import (
 
 const createItem = `-- name: CreateItem :one
 INSERT INTO items (
-    id, list_id, user_id, type_id,
-    title, content, url, thumbnail
+    list_id, type_id,title, content, url, thumbnail
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-RETURNING id, list_id, user_id, type_id, title, content, url, thumbnail, created_at, updated_at
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING id, list_id, type_id, title, content, url, thumbnail, created_at, updated_at
 `
 
 type CreateItemParams struct {
-	ID        pgtype.UUID `json:"id"`
 	ListID    pgtype.UUID `json:"list_id"`
-	UserID    pgtype.UUID `json:"user_id"`
-	TypeID    pgtype.Int4 `json:"type_id"`
+	TypeID    pgtype.UUID `json:"type_id"`
 	Title     pgtype.Text `json:"title"`
 	Content   pgtype.Text `json:"content"`
 	Url       pgtype.Text `json:"url"`
@@ -33,9 +30,7 @@ type CreateItemParams struct {
 
 func (q *Queries) CreateItem(ctx context.Context, arg CreateItemParams) (Item, error) {
 	row := q.db.QueryRow(ctx, createItem,
-		arg.ID,
 		arg.ListID,
-		arg.UserID,
 		arg.TypeID,
 		arg.Title,
 		arg.Content,
@@ -46,7 +41,6 @@ func (q *Queries) CreateItem(ctx context.Context, arg CreateItemParams) (Item, e
 	err := row.Scan(
 		&i.ID,
 		&i.ListID,
-		&i.UserID,
 		&i.TypeID,
 		&i.Title,
 		&i.Content,
@@ -59,7 +53,7 @@ func (q *Queries) CreateItem(ctx context.Context, arg CreateItemParams) (Item, e
 }
 
 const deleteItem = `-- name: DeleteItem :exec
-DELETE FROM items
+DELETE FROM items i
 WHERE id = $1
 `
 
@@ -68,39 +62,21 @@ func (q *Queries) DeleteItem(ctx context.Context, id pgtype.UUID) error {
 	return err
 }
 
-const getItem = `-- name: GetItem :one
-SELECT id, list_id, user_id, type_id, title, content, url, thumbnail, created_at, updated_at
-FROM items
-WHERE id = $1
+const getAllItemsByList = `-- name: GetAllItemsByList :many
+SELECT i.id, i.list_id, i.type_id, i.title, i.content, i.url, i.thumbnail, i.created_at, i.updated_at
+FROM items i
+JOIN lists l on i.list_id = l.id
+WHERE l.user_id = $1
+  AND l.id = $2
 `
 
-func (q *Queries) GetItem(ctx context.Context, id pgtype.UUID) (Item, error) {
-	row := q.db.QueryRow(ctx, getItem, id)
-	var i Item
-	err := row.Scan(
-		&i.ID,
-		&i.ListID,
-		&i.UserID,
-		&i.TypeID,
-		&i.Title,
-		&i.Content,
-		&i.Url,
-		&i.Thumbnail,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
+type GetAllItemsByListParams struct {
+	UserID pgtype.UUID `json:"user_id"`
+	ID     pgtype.UUID `json:"id"`
 }
 
-const listItemsByList = `-- name: ListItemsByList :many
-SELECT id, list_id, user_id, type_id, title, content, url, thumbnail, created_at, updated_at
-FROM items
-WHERE list_id = $1
-ORDER BY created_at DESC
-`
-
-func (q *Queries) ListItemsByList(ctx context.Context, listID pgtype.UUID) ([]Item, error) {
-	rows, err := q.db.Query(ctx, listItemsByList, listID)
+func (q *Queries) GetAllItemsByList(ctx context.Context, arg GetAllItemsByListParams) ([]Item, error) {
+	rows, err := q.db.Query(ctx, getAllItemsByList, arg.UserID, arg.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +87,6 @@ func (q *Queries) ListItemsByList(ctx context.Context, listID pgtype.UUID) ([]It
 		if err := rows.Scan(
 			&i.ID,
 			&i.ListID,
-			&i.UserID,
 			&i.TypeID,
 			&i.Title,
 			&i.Content,
@@ -130,6 +105,29 @@ func (q *Queries) ListItemsByList(ctx context.Context, listID pgtype.UUID) ([]It
 	return items, nil
 }
 
+const getItem = `-- name: GetItem :one
+SELECT id, list_id, type_id, title, content, url, thumbnail, created_at, updated_at
+FROM items
+WHERE id = $1
+`
+
+func (q *Queries) GetItem(ctx context.Context, id pgtype.UUID) (Item, error) {
+	row := q.db.QueryRow(ctx, getItem, id)
+	var i Item
+	err := row.Scan(
+		&i.ID,
+		&i.ListID,
+		&i.TypeID,
+		&i.Title,
+		&i.Content,
+		&i.Url,
+		&i.Thumbnail,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const updateItem = `-- name: UpdateItem :one
 UPDATE items
 SET
@@ -139,7 +137,7 @@ SET
     thumbnail = COALESCE($5, thumbnail),
     updated_at = now()
 WHERE id = $1
-RETURNING id, list_id, user_id, type_id, title, content, url, thumbnail, created_at, updated_at
+RETURNING id, list_id, type_id, title, content, url, thumbnail, created_at, updated_at
 `
 
 type UpdateItemParams struct {
@@ -162,7 +160,6 @@ func (q *Queries) UpdateItem(ctx context.Context, arg UpdateItemParams) (Item, e
 	err := row.Scan(
 		&i.ID,
 		&i.ListID,
-		&i.UserID,
 		&i.TypeID,
 		&i.Title,
 		&i.Content,

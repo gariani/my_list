@@ -4,24 +4,29 @@ import (
 	"net/http"
 
 	"github.com/gariani/my_list/src/auth"
+	"github.com/gariani/my_list/src/internal/database"
 	"github.com/gariani/my_list/src/middleware"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func AuthRouter(r *gin.Engine) {
+func AuthRouter(r *gin.Engine, pool *pgxpool.Pool, queries *database.Queries) {
 
-	r.POST("/register", auth.Register)
-	r.POST("/login", auth.Login)
+	service := auth.NewService(pool, queries)
+
+	r.POST("/register", auth.Register(service))
+	r.POST("/login", auth.Login(service))
 
 	authGroup := r.Group("/")
 	authGroup.Use(middleware.AuthRequired(), middleware.VerifyCSRF())
-	authGroup.POST("/refresh", auth.Refresh)
-	authGroup.POST("/logout", auth.Logout)
+	authGroup.POST("/refresh", auth.Refresh(service))
+	authGroup.POST("/logout", auth.Logout(service))
 
 	api := r.Group("/api")
 
 	v1 := api.Group("/v1")
 	v1.Use(middleware.AuthRequired(), middleware.VerifyCSRF())
+
 	v1.GET("/profile", func(c *gin.Context) {
 		userId := c.GetString("userId")
 		if userId == "" {
