@@ -13,6 +13,7 @@ func SetupRouter(pool *pgxpool.Pool, queries *database.Queries) *gin.Engine {
 	AuthRouter(r, pool, queries)
 	ListRouters(r, pool, queries)
 	ItemsRouters(r, pool, queries)
+	TagRouters(r, pool, queries)
 
 	return r
 }

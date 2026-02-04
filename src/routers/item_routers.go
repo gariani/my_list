@@ -17,11 +17,11 @@ func ItemsRouters(r *gin.Engine, pool *pgxpool.Pool, queries *database.Queries) 
 
 	list := v1.Group("/lists/:id")
 
-	itemService := items.NewService(queries)
+	itemService := items.NewService(queries, pool)
 
 	list.GET("/items", items.GeAllItemsByListHandler(itemService))
 	// v1.GET("/lists", lists.GetListsHandler(listService))
-	// v1.POST("/list", lists.CreateUserList(listService))
+	list.POST("/items", items.CreateItemHandler(itemService))
 	// v1.DELETE("/list/:id", lists.DeleteList(listService))
 
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func GetListsHandler(svc *Service) gin.HandlerFunc {
+func GetAllListsHandler(svc *Service) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 
@@ -36,6 +36,30 @@ func GetListsHandler(svc *Service) gin.HandlerFunc {
 	}
 }
 
+func GetListHandler(svc *Service) gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		listId := c.Param("id")
+
+		var id pgtype.UUID
+
+		if err := id.Scan(listId); err != nil {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "invalid list id"})
+			return
+		}
+
+		list, err := svc.GetList(id)
+
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "list not found"})
+			return
+		}
+
+		c.JSON(http.StatusOK, list)
+
+	}
+}
+
 func CreateUserListHandler(svc *Service) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
@@ -47,14 +71,14 @@ func CreateUserListHandler(svc *Service) gin.HandlerFunc {
 			return
 		}
 
-		var req database.List
+		var req CreateListRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
 			return
 		}
 
-		newReq, err := svc.CreateUserList(userId, &req)
+		newReq, err := svc.CreateUserList(userId, req)
 
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
@@ -83,30 +107,6 @@ func DeleteListHandler(svc *Service) gin.HandlerFunc {
 		}
 
 		c.Status(http.StatusNoContent)
-
-	}
-}
-
-func GetListHandler(svc *Service) gin.HandlerFunc {
-	return func(c *gin.Context) {
-
-		listId := c.Param("id")
-
-		var id pgtype.UUID
-
-		if err := id.Scan(listId); err != nil {
-			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "invalid list id"})
-			return
-		}
-
-		list, err := svc.GetList(id)
-
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "list not found"})
-			return
-		}
-
-		c.JSON(http.StatusOK, list)
 
 	}
 }

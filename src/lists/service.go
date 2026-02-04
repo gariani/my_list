@@ -38,13 +38,24 @@ func (s *Service) GetAllListByUserId(id string) ([]database.List, error) {
 	return allLists, nil
 }
 
-func (s *Service) CreateUserList(id string, list *database.List) (*database.List, error) {
+func (s *Service) GetList(id pgtype.UUID) (*database.List, error) {
+
+	query, err := s.query.GetList(context.Background(), id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &query, nil
+}
+
+func (s *Service) CreateUserList(id string, list CreateListRequest) (ListResponse, error) {
 
 	var userId pgtype.UUID
 
 	err := userId.Scan(id)
 	if err != nil {
-		return nil, err
+		return ListResponse{}, err
 	}
 
 	listParam := database.CreateListParams{}
@@ -56,25 +67,24 @@ func (s *Service) CreateUserList(id string, list *database.List) (*database.List
 	tx, err := s.pool.Begin(context.Background())
 
 	if err != nil {
-		return nil, err
+		return ListResponse{}, err
 	}
 
-	tx.Rollback(context.Background())
+	defer func() {
+		if err != nil {
+			tx.Rollback(context.Background())
+		}
+	}()
 
 	qtx := s.query.WithTx(tx)
 
 	query, err := qtx.CreateList(context.Background(), listParam)
 
 	if err != nil {
-		return nil, err
+		return ListResponse{}, err
 	}
 
-	newList := &database.List{}
-	newList.ID = query.ID
-	newList.Name = query.Name
-	newList.UserID = query.UserID
-
-	return newList, tx.Commit(context.Background())
+	return ToListResponse(query), tx.Commit(context.Background())
 
 }
 
@@ -86,7 +96,11 @@ func (s *Service) DeleteList(id pgtype.UUID) error {
 		return err
 	}
 
-	defer tx.Rollback(context.Background())
+	defer func() {
+		if err != nil {
+			tx.Rollback(context.Background())
+		}
+	}()
 
 	qtx := s.query.WithTx(tx)
 
@@ -95,25 +109,4 @@ func (s *Service) DeleteList(id pgtype.UUID) error {
 	}
 
 	return tx.Commit(context.Background())
-}
-
-func (s *Service) GetList(id pgtype.UUID) (*database.List, error) {
-	tx, err := s.pool.Begin(context.Background())
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer tx.Rollback(context.Background())
-
-	qtx := s.query.WithTx(tx)
-
-	query, err := qtx.GetList(context.Background(), id)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &query, tx.Commit(context.Background())
-
 }

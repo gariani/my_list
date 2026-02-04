@@ -49,6 +49,12 @@ func (s *Service) RegisterUser(email, password string) error {
 		return err
 	}
 
+	defer func() {
+		if err != nil {
+			tx.Rollback(context.Background())
+		}
+	}()
+
 	_, err = tx.Exec(context.Background(), `INSERT INTO users (id, email, pass_hash) VALUES ($1, $2, $3)`, uuid.New().String(), email, hashed)
 
 	if err != nil {

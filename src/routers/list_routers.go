@@ -19,7 +19,7 @@ func ListRouters(r *gin.Engine, p *pgxpool.Pool, q *database.Queries) {
 	listService := lists.NewService(p, q)
 
 	v1.GET("/list/:id", lists.GetListHandler(listService))
-	v1.GET("/lists", lists.GetListsHandler(listService))
+	v1.GET("/lists", lists.GetAllListsHandler(listService))
 	v1.POST("/list", lists.CreateUserListHandler(listService))
 	v1.DELETE("/list/:id", lists.DeleteListHandler(listService))
 
