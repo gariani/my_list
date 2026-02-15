@@ -3,8 +3,8 @@ package items
 import (
 	"time"
 
-	"github.com/gariani/my_list/src/internal/database"
-	"github.com/gariani/my_list/src/tags"
+	"github.com/gariani/my_list/internal/database"
+	"github.com/gariani/my_list/tags"
 )
 
 type CreateItemRequest struct {

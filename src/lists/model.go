@@ -3,7 +3,7 @@ package lists
 import (
 	"time"
 
-	"github.com/gariani/my_list/src/internal/database"
+	"github.com/gariani/my_list/internal/database"
 )
 
 type CreateListRequest struct {

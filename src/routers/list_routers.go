@@ -1,9 +1,9 @@
 package routers
 
 import (
-	"github.com/gariani/my_list/src/internal/database"
-	"github.com/gariani/my_list/src/lists"
-	"github.com/gariani/my_list/src/middleware"
+	"github.com/gariani/my_list/internal/database"
+	"github.com/gariani/my_list/lists"
+	"github.com/gariani/my_list/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 )

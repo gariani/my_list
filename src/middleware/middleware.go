@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/gariani/my_list/src/auth"
+	"github.com/gariani/my_list/auth"
 	"github.com/gin-gonic/gin"
 )
 

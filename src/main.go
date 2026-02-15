@@ -1,14 +1,28 @@
 package main
 
+// @title My List API
+// @version 1.0
+// @description API for managing lists
+// @host localhost:8080
+// @BasePath /
+// @schemes https
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+
+// @securityDefinitions.apikey CSRF
+// @in header
+// @name X-CSRF-Token
 import (
 	"context"
 	"fmt"
 	"log"
 	"os"
 
-	connection "github.com/gariani/my_list/src/database"
-	"github.com/gariani/my_list/src/internal/database"
-	"github.com/gariani/my_list/src/routers"
+	connection "github.com/gariani/my_list/database"
+	"github.com/gariani/my_list/internal/database"
+	"github.com/gariani/my_list/routers"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )

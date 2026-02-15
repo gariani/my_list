@@ -3,8 +3,8 @@ package lists
 import (
 	"context"
 
-	"github.com/gariani/my_list/src/internal/database"
-	"github.com/gariani/my_list/src/utils"
+	"github.com/gariani/my_list/internal/database"
+	"github.com/gariani/my_list/utils"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )

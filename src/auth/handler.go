@@ -1,9 +1,10 @@
 package auth
 
 import (
+	"fmt"
 	"net/http"
 
-	"github.com/gariani/my_list/src/utils"
+	"github.com/gariani/my_list/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -35,30 +36,41 @@ func Register(s *Service) gin.HandlerFunc {
 	}
 }
 
+// @Summary Login user
+// @Description Login with email/password and return JWT + CSRF
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param login body auth.LoginRequest true "Login info"
+// @Success 200 {object} auth.LoginResponse
+// @Failure 400 {object} utils.ErrorResponse
+// @Failure 401 {object} utils.ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
+// @Router /login [post]
 func Login(s *Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var input LoginInput
 
 		if err := c.ShouldBindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			c.JSON(http.StatusBadRequest, utils.ErrorResponse{Message: "invalid input", Code: http.StatusBadRequest})
 			return
 		}
 
 		user, err := s.GetUserByEmail(input.Email)
 		if err != nil || !utils.CheckPassword(user.PassHash, input.Password) {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+			c.JSON(http.StatusUnauthorized, utils.ErrorResponse{Message: fmt.Sprintf("invalid credentials %s", err.Error()), Code: http.StatusBadRequest})
 			return
 		}
 
 		accessToken, err := GenerateAccessToken(user.ID)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "token error"})
+			c.JSON(http.StatusInternalServerError, utils.ErrorResponse{Message: "token error", Code: http.StatusBadRequest})
 			return
 		}
 
 		refreshToken, err := GenerateRefreshToken(user.ID)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "token error"})
+			c.JSON(http.StatusInternalServerError, utils.ErrorResponse{Message: "token error", Code: http.StatusBadRequest})
 			return
 		}
 
@@ -68,7 +80,7 @@ func Login(s *Service) gin.HandlerFunc {
 		c.SetCookie("access_token", accessToken, 900, "/", "", true, true)
 		c.SetCookie("refresh_token", refreshToken, 3600*24*7, "/", "", true, true)
 
-		c.JSON(http.StatusOK, gin.H{"message": "logged in"})
+		c.JSON(http.StatusOK, LoginResponse{AccessToken: accessToken, CSRFToken: csrfToken})
 
 	}
 }

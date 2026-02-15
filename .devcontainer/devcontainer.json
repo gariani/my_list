@@ -14,20 +14,23 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "ms-azuretools.vscode-cosmosdb",
         "cweijan.dbclient-jdbc",
-        "cweijan.vscode-database-client2"
+        "cweijan.vscode-database-client2",
+        "Postman.postman-for-vscode"
       ]
     }
   },
   "runArgs": [
     "--env-file",
     ".env"
-  ]
+  ],
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [],
   // Use 'postCreateCommand' to run commands after the container is created.
-  // "postCreateCommand": "go version",
+  "postCreateCommand": "go install github.com/pressly/goose/v3/cmd/goose@latest && go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest",
+  "remoteEnv": {
+    "SSH_AUTH_SOCK": "${localEnv:SSH_AUTH_SOCK}"
+  }
   // Configure tool-specific properties.
   // "customizations": {},
   // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.

@@ -5,8 +5,8 @@ import (
 	"errors"
 	"log"
 
-	"github.com/gariani/my_list/src/internal/database"
-	"github.com/gariani/my_list/src/utils"
+	"github.com/gariani/my_list/internal/database"
+	"github.com/gariani/my_list/utils"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"

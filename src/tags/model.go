@@ -1,6 +1,6 @@
 package tags
 
-import "github.com/gariani/my_list/src/internal/database"
+import "github.com/gariani/my_list/internal/database"
 
 type RequestTag struct {
 	Name string `json:"name"`
