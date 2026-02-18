@@ -1,0 +1,23 @@
+{
+  "name": "Vue + Go Dev",
+  "dockerComposeFile": [
+    "../docker-compose.yml"
+  ],
+  "service": "backend",
+  "overrideCommand": true,
+  "workspaceFolder": "/app",
+  "forwardPorts": [
+    8080,
+    5173
+  ],
+  "postCreateCommand": "go install github.com/pressly/goose/v3/cmd/goose@latest && go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "cweijan.dbclient-jdbc",
+        "cweijan.vscode-database-client2",
+        "Postman.postman-for-vscode"
+      ]
+    }
+  }
+}

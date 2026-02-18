@@ -1,0 +1,19 @@
+services:
+  backend:
+    build:
+      context: ./src/backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    command: tail -f /dev/null
+
+  frontend:
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    command: npm run dev
+
+networks:
+  default: null
