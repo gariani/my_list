@@ -8,7 +8,7 @@ services:
       - "5173:5173"
     volumes:
       - .:/app
-    command: tail -f /dev/null
+    command: sh -c "cd /app/src/frontend && npm install --silent && npm run dev > /tmp/vite.log 2>&1 & tail -f /dev/null"
 
 networks:
   default: null

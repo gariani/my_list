@@ -4,7 +4,7 @@
     "../docker-compose.yml"
   ],
   "service": "backend",
-  "overrideCommand": true,
+  "overrideCommand": false,
   "workspaceFolder": "/app",
   "forwardPorts": [
     8080,
@@ -13,7 +13,6 @@
   "mounts": [
     "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,readonly"
   ],
-  "postStartCommand": "bash /app/.devcontainer/start-frontend.sh",
   "customizations": {
     "vscode": {
       "extensions": [
