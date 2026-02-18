@@ -2,3 +2,4 @@
 *.pem
 *.pfx
 ./src/*.pem
+./src/frontend/node_modules
