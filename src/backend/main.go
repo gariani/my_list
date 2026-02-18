@@ -20,7 +20,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/gariani/my_list/ai"
 	connection "github.com/gariani/my_list/database"
 	"github.com/gariani/my_list/internal/database"
 	"github.com/gariani/my_list/routers"
@@ -46,12 +45,7 @@ func main() {
 
 	defer Pool.Close()
 
-	ollamaUrl := "http://127.0.0.1:11434"
-
-	model := "llama3:latest"
-	aiService := ai.NewOllamaService(ollamaUrl, model)
-
-	r := routers.SetupRouter(pool, queries, aiService)
+	r := routers.SetupRouter(pool, queries)
 
 	if err := r.RunTLS(":8080", "cert.pem", "key.pem"); err != nil {
 		log.Fatal(err)

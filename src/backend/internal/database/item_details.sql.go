@@ -13,7 +13,7 @@ import (
 
 const getAllItemsByListWithDetails = `-- name: GetAllItemsByListWithDetails :many
 SELECT
-    i.id, i.list_id, i.type_id, i.title, i.content, i.url, i.thumbnail, i.created_at, i.updated_at, i.category, i.tags, i.summary, i.embedding,
+    i.id, i.list_id, i.type_id, i.title, i.content, i.url, i.thumbnail, i.created_at, i.updated_at,
     it.name as type_name,
     it.description as type_description
 FROM items i
@@ -38,10 +38,6 @@ type GetAllItemsByListWithDetailsRow struct {
 	Thumbnail       pgtype.Text      `json:"thumbnail"`
 	CreatedAt       pgtype.Timestamp `json:"created_at"`
 	UpdatedAt       pgtype.Timestamp `json:"updated_at"`
-	Category        pgtype.Text      `json:"category"`
-	Tags            []string         `json:"tags"`
-	Summary         pgtype.Text      `json:"summary"`
-	Embedding       []float64        `json:"embedding"`
 	TypeName        pgtype.Text      `json:"type_name"`
 	TypeDescription pgtype.Text      `json:"type_description"`
 }
@@ -65,10 +61,6 @@ func (q *Queries) GetAllItemsByListWithDetails(ctx context.Context, arg GetAllIt
 			&i.Thumbnail,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.Category,
-			&i.Tags,
-			&i.Summary,
-			&i.Embedding,
 			&i.TypeName,
 			&i.TypeDescription,
 		); err != nil {
@@ -85,7 +77,7 @@ func (q *Queries) GetAllItemsByListWithDetails(ctx context.Context, arg GetAllIt
 const getItemWithDetails = `-- name: GetItemWithDetails :one
 
 SELECT
-    i.id, i.list_id, i.type_id, i.title, i.content, i.url, i.thumbnail, i.created_at, i.updated_at, i.category, i.tags, i.summary, i.embedding,
+    i.id, i.list_id, i.type_id, i.title, i.content, i.url, i.thumbnail, i.created_at, i.updated_at,
     it.name as type_name,
     it.description as type_description
 FROM items i
@@ -103,10 +95,6 @@ type GetItemWithDetailsRow struct {
 	Thumbnail       pgtype.Text      `json:"thumbnail"`
 	CreatedAt       pgtype.Timestamp `json:"created_at"`
 	UpdatedAt       pgtype.Timestamp `json:"updated_at"`
-	Category        pgtype.Text      `json:"category"`
-	Tags            []string         `json:"tags"`
-	Summary         pgtype.Text      `json:"summary"`
-	Embedding       []float64        `json:"embedding"`
 	TypeName        pgtype.Text      `json:"type_name"`
 	TypeDescription pgtype.Text      `json:"type_description"`
 }
@@ -125,10 +113,6 @@ func (q *Queries) GetItemWithDetails(ctx context.Context, id pgtype.UUID) (GetIt
 		&i.Thumbnail,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.Category,
-		&i.Tags,
-		&i.Summary,
-		&i.Embedding,
 		&i.TypeName,
 		&i.TypeDescription,
 	)
@@ -137,7 +121,7 @@ func (q *Queries) GetItemWithDetails(ctx context.Context, id pgtype.UUID) (GetIt
 
 const getItemsWithTypeByList = `-- name: GetItemsWithTypeByList :many
 SELECT
-    i.id, i.list_id, i.type_id, i.title, i.content, i.url, i.thumbnail, i.created_at, i.updated_at, i.category, i.tags, i.summary, i.embedding,
+    i.id, i.list_id, i.type_id, i.title, i.content, i.url, i.thumbnail, i.created_at, i.updated_at,
     it.id as type_id,
     it.name as type_name,
     it.description as type_description
@@ -163,10 +147,6 @@ type GetItemsWithTypeByListRow struct {
 	Thumbnail       pgtype.Text      `json:"thumbnail"`
 	CreatedAt       pgtype.Timestamp `json:"created_at"`
 	UpdatedAt       pgtype.Timestamp `json:"updated_at"`
-	Category        pgtype.Text      `json:"category"`
-	Tags            []string         `json:"tags"`
-	Summary         pgtype.Text      `json:"summary"`
-	Embedding       []float64        `json:"embedding"`
 	TypeID_2        pgtype.UUID      `json:"type_id_2"`
 	TypeName        pgtype.Text      `json:"type_name"`
 	TypeDescription pgtype.Text      `json:"type_description"`
@@ -191,10 +171,6 @@ func (q *Queries) GetItemsWithTypeByList(ctx context.Context, arg GetItemsWithTy
 			&i.Thumbnail,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.Category,
-			&i.Tags,
-			&i.Summary,
-			&i.Embedding,
 			&i.TypeID_2,
 			&i.TypeName,
 			&i.TypeDescription,

@@ -10,6 +10,9 @@
     8080,
     5173
   ],
+  "mounts": [
+    "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,readonly"
+  ],
   "postStartCommand": "bash /app/.devcontainer/start-frontend.sh",
   "customizations": {
     "vscode": {

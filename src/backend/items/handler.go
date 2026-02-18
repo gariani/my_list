@@ -62,7 +62,7 @@ func CreateItemHandler(svc *Service) gin.HandlerFunc {
 			return
 		}
 
-		item, err := svc.CreateItem(&req)
+		item, err := svc.CreateItem(req)
 
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

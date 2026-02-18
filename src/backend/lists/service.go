@@ -3,7 +3,6 @@ package lists
 import (
 	"context"
 
-	"github.com/gariani/my_list/ai"
 	"github.com/gariani/my_list/internal/database"
 	"github.com/gariani/my_list/utils"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -11,16 +10,14 @@ import (
 )
 
 type Service struct {
-	pool      *pgxpool.Pool
-	query     *database.Queries
-	aiService ai.Service
+	pool  *pgxpool.Pool
+	query *database.Queries
 }
 
-func NewService(p *pgxpool.Pool, q *database.Queries, ai ai.Service) *Service {
+func NewService(p *pgxpool.Pool, q *database.Queries) *Service {
 	return &Service{
-		pool:      p,
-		query:     q,
-		aiService: ai,
+		pool:  p,
+		query: q,
 	}
 }
 

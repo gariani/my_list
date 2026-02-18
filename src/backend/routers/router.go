@@ -3,14 +3,13 @@ package routers
 import (
 	"time"
 
-	"github.com/gariani/my_list/ai"
 	"github.com/gariani/my_list/internal/database"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func SetupRouter(pool *pgxpool.Pool, queries *database.Queries, aiService ai.Service) *gin.Engine {
+func SetupRouter(pool *pgxpool.Pool, queries *database.Queries) *gin.Engine {
 
 	r := gin.Default()
 
@@ -29,8 +28,8 @@ func SetupRouter(pool *pgxpool.Pool, queries *database.Queries, aiService ai.Ser
 	r.Use(gin.Recovery())
 
 	AuthRouter(r, pool, queries)
-	ListRouters(r, pool, queries, aiService)
-	ItemsRouters(r, pool, queries, aiService)
+	ListRouters(r, pool, queries)
+	ItemsRouters(r, pool, queries)
 	TagRouters(r, pool, queries)
 
 	return r

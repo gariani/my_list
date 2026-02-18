@@ -18,10 +18,6 @@ type Item struct {
 	Thumbnail pgtype.Text      `json:"thumbnail"`
 	CreatedAt pgtype.Timestamp `json:"created_at"`
 	UpdatedAt pgtype.Timestamp `json:"updated_at"`
-	Category  pgtype.Text      `json:"category"`
-	Tags      []string         `json:"tags"`
-	Summary   pgtype.Text      `json:"summary"`
-	Embedding []float64        `json:"embedding"`
 }
 
 type ItemMetadatum struct {

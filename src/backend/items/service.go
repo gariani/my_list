@@ -3,7 +3,6 @@ package items
 import (
 	"context"
 
-	"github.com/gariani/my_list/ai"
 	"github.com/gariani/my_list/internal/database"
 	"github.com/gariani/my_list/tags"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -11,16 +10,14 @@ import (
 )
 
 type Service struct {
-	pool      *pgxpool.Pool
-	query     *database.Queries
-	aiService ai.Service
+	pool  *pgxpool.Pool
+	query *database.Queries
 }
 
-func NewService(q *database.Queries, p *pgxpool.Pool, ai ai.Service) *Service {
+func NewService(q *database.Queries, p *pgxpool.Pool) *Service {
 	return &Service{
-		pool:      p,
-		query:     q,
-		aiService: ai,
+		pool:  p,
+		query: q,
 	}
 }
 
@@ -107,26 +104,14 @@ func (s *Service) GetAllItemsByList(userID pgtype.UUID, id string) ([]ItemRespon
 	return responses, nil
 }
 
-func (s *Service) CreateItem(req *CreateItemRequest) (ItemResponse, error) {
+func (s *Service) CreateItem(req CreateItemRequest) (ItemResponse, error) {
 
 	var listID, typeID pgtype.UUID
 	if err := listID.Scan(req.ListID); err != nil {
 		return ItemResponse{}, err
 	}
-
 	if err := typeID.Scan(req.TypeID); err != nil {
 		return ItemResponse{}, err
-	}
-
-	var aiResult *ai.ClassificationResult
-	var err error
-
-	if /*req.AutoClassify &&*/ s.aiService != nil {
-		input := req.Title + "\n" + req.Content + "\n" + req.URL
-		aiResult, err = s.aiService.Classify(context.Background(), input)
-		if err != nil {
-			aiResult = nil
-		}
 	}
 
 	tx, err := s.pool.Begin(context.Background())
@@ -138,25 +123,17 @@ func (s *Service) CreateItem(req *CreateItemRequest) (ItemResponse, error) {
 		}
 	}()
 
-	category := pgtype.Text{}
-	summary := pgtype.Text{}
-
-	if aiResult != nil {
-		category.Scan(aiResult.Category)
-		summary.Scan(aiResult.Summary)
-	}
-
 	title := pgtype.Text{}
-	content := pgtype.Text{}
-	thumbnail := pgtype.Text{}
-	url := pgtype.Text{}
+	title.Scan(req.Title)
 
-	if req != nil {
-		title.Scan(req.Title)
-		content.Scan(req.Content)
-		thumbnail.Scan(req.Thumbnail)
-		url.Scan(req.URL)
-	}
+	content := pgtype.Text{}
+	content.Scan(req.Content)
+
+	thumbnail := pgtype.Text{}
+	thumbnail.Scan(req.Thumbnail)
+
+	url := pgtype.Text{}
+	url.Scan(req.URL)
 
 	param := database.CreateItemParams{
 		ListID:    listID,
@@ -165,9 +142,6 @@ func (s *Service) CreateItem(req *CreateItemRequest) (ItemResponse, error) {
 		Content:   content,
 		Url:       url,
 		Thumbnail: thumbnail,
-		Category:  category,
-		Summary:   summary,
-		// Embedding: aiResult.Embedding,
 	}
 
 	qtx := s.query.WithTx(tx)

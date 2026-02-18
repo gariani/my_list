@@ -1,7 +1,6 @@
 package routers
 
 import (
-	"github.com/gariani/my_list/ai"
 	"github.com/gariani/my_list/internal/database"
 	"github.com/gariani/my_list/items"
 	"github.com/gariani/my_list/middleware"
@@ -9,7 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func ItemsRouters(r *gin.Engine, pool *pgxpool.Pool, queries *database.Queries, aiService ai.Service) {
+func ItemsRouters(r *gin.Engine, pool *pgxpool.Pool, queries *database.Queries) {
 	api := r.Group("/api")
 
 	v1 := api.Group(("/v1"))
@@ -18,7 +17,7 @@ func ItemsRouters(r *gin.Engine, pool *pgxpool.Pool, queries *database.Queries, 
 
 	list := v1.Group("/lists/:id")
 
-	itemService := items.NewService(queries, pool, aiService)
+	itemService := items.NewService(queries, pool)
 
 	list.GET("/items", items.GeAllItemsByListHandler(itemService))
 	// v1.GET("/lists", lists.GetListsHandler(listService))

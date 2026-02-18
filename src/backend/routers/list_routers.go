@@ -1,7 +1,6 @@
 package routers
 
 import (
-	"github.com/gariani/my_list/ai"
 	"github.com/gariani/my_list/internal/database"
 	"github.com/gariani/my_list/lists"
 	"github.com/gariani/my_list/middleware"
@@ -9,7 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func ListRouters(r *gin.Engine, p *pgxpool.Pool, q *database.Queries, aiService ai.Service) {
+func ListRouters(r *gin.Engine, p *pgxpool.Pool, q *database.Queries) {
 
 	api := r.Group("/api")
 
@@ -17,7 +16,7 @@ func ListRouters(r *gin.Engine, p *pgxpool.Pool, q *database.Queries, aiService 
 
 	v1.Use(middleware.AuthRequired(), middleware.VerifyCSRF())
 
-	listService := lists.NewService(p, q, aiService)
+	listService := lists.NewService(p, q)
 
 	v1.GET("/list/:id", lists.GetListHandler(listService))
 	v1.GET("/lists", lists.GetAllListsHandler(listService))

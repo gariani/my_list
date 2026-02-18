@@ -8,13 +8,12 @@ import (
 )
 
 type CreateItemRequest struct {
-	ListID       string `json:"list_id" binding:"required,uuid"`
-	TypeID       string `json:"type_id" binding:"required,uuid"`
-	Title        string `json:"title" binding:"required"`
-	Content      string `json:"content"`
-	URL          string `json:"url"`
-	Thumbnail    string `json:"thumbnail"`
-	AutoClassify bool   `json:"auto_classify"`
+	ListID    string `json:"list_id" binding:"required,uuid"`
+	TypeID    string `json:"type_id" binding:"required,uuid"`
+	Title     string `json:"title" binding:"required"`
+	Content   string `json:"content"`
+	URL       string `json:"url"`
+	Thumbnail string `json:"thumbnail"`
 }
 
 type ItemResponse struct {
@@ -29,9 +28,6 @@ type ItemResponse struct {
 	UpdatedAt string             `json:"updated_at"`
 	Type      *ItemTypeInfo      `json:"type,omitempty"`
 	Tags      []tags.ResponseTag `json:"tags,omitempty"`
-	Category  string             `json:"category"`
-	Summary   string             `json:"summary"`
-	Embedding []float64          `json:"embedding"`
 }
 
 type ItemTypeInfo struct {
@@ -41,12 +37,11 @@ type ItemTypeInfo struct {
 }
 
 type UpdateItemRequest struct {
-	Title      *string  `json:"title"`
-	Content    *string  `json:"content"`
-	URL        *string  `json:"url"`
-	Thumbnail  *string  `json:"thumbnail"`
-	TagIDs     []string `json:"tag_ids"`
-	Reclassify bool     `json:"reclassify"`
+	Title     *string  `json:"title"`
+	Content   *string  `json:"content"`
+	URL       *string  `json:"url"`
+	Thumbnail *string  `json:"thumbnail"`
+	TagIDs    []string `json:"tag_ids"`
 }
 
 func ToItemResponseByListRow(dbItem database.GetItemsWithTypeByListRow) ItemResponse {
@@ -60,9 +55,6 @@ func ToItemResponseByListRow(dbItem database.GetItemsWithTypeByListRow) ItemResp
 		Thumbnail: dbItem.Thumbnail.String,
 		CreatedAt: dbItem.CreatedAt.Time.Format(time.RFC3339),
 		UpdatedAt: dbItem.UpdatedAt.Time.Format(time.RFC3339),
-		Category:  dbItem.Category.String,
-		Summary:   dbItem.Summary.String,
-		Embedding: dbItem.Embedding,
 	}
 }
 
@@ -75,9 +67,6 @@ func ToItemResponse(dbItem database.Item) ItemResponse {
 		Content:   dbItem.Content.String,
 		Url:       dbItem.Url.String,
 		Thumbnail: dbItem.Thumbnail.String,
-		Category:  dbItem.Category.String,
-		Summary:   dbItem.Summary.String,
-		Embedding: dbItem.Embedding,
 		CreatedAt: dbItem.CreatedAt.Time.Format(time.RFC3339),
 		UpdatedAt: dbItem.UpdatedAt.Time.Format(time.RFC3339),
 	}

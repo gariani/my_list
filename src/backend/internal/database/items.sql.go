@@ -13,10 +13,10 @@ import (
 
 const createItem = `-- name: CreateItem :one
 INSERT INTO items (
-    list_id, type_id,title, content, url, thumbnail, category, tags, summary, embedding
+    list_id, type_id,title, content, url, thumbnail
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-RETURNING id, list_id, type_id, title, content, url, thumbnail, created_at, updated_at, category, tags, summary, embedding
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING id, list_id, type_id, title, content, url, thumbnail, created_at, updated_at
 `
 
 type CreateItemParams struct {
@@ -26,10 +26,6 @@ type CreateItemParams struct {
 	Content   pgtype.Text `json:"content"`
 	Url       pgtype.Text `json:"url"`
 	Thumbnail pgtype.Text `json:"thumbnail"`
-	Category  pgtype.Text `json:"category"`
-	Tags      []string    `json:"tags"`
-	Summary   pgtype.Text `json:"summary"`
-	Embedding []float64   `json:"embedding"`
 }
 
 func (q *Queries) CreateItem(ctx context.Context, arg CreateItemParams) (Item, error) {
@@ -40,10 +36,6 @@ func (q *Queries) CreateItem(ctx context.Context, arg CreateItemParams) (Item, e
 		arg.Content,
 		arg.Url,
 		arg.Thumbnail,
-		arg.Category,
-		arg.Tags,
-		arg.Summary,
-		arg.Embedding,
 	)
 	var i Item
 	err := row.Scan(
@@ -56,10 +48,6 @@ func (q *Queries) CreateItem(ctx context.Context, arg CreateItemParams) (Item, e
 		&i.Thumbnail,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.Category,
-		&i.Tags,
-		&i.Summary,
-		&i.Embedding,
 	)
 	return i, err
 }
@@ -75,7 +63,7 @@ func (q *Queries) DeleteItem(ctx context.Context, id pgtype.UUID) error {
 }
 
 const getAllItemsByList = `-- name: GetAllItemsByList :many
-SELECT i.id, i.list_id, i.type_id, i.title, i.content, i.url, i.thumbnail, i.created_at, i.updated_at, i.category, i.tags, i.summary, i.embedding
+SELECT i.id, i.list_id, i.type_id, i.title, i.content, i.url, i.thumbnail, i.created_at, i.updated_at
 FROM items i
 JOIN lists l on i.list_id = l.id
 WHERE l.user_id = $1
@@ -106,10 +94,6 @@ func (q *Queries) GetAllItemsByList(ctx context.Context, arg GetAllItemsByListPa
 			&i.Thumbnail,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.Category,
-			&i.Tags,
-			&i.Summary,
-			&i.Embedding,
 		); err != nil {
 			return nil, err
 		}
@@ -122,7 +106,7 @@ func (q *Queries) GetAllItemsByList(ctx context.Context, arg GetAllItemsByListPa
 }
 
 const getItem = `-- name: GetItem :one
-SELECT id, list_id, type_id, title, content, url, thumbnail, created_at, updated_at, category, tags, summary, embedding
+SELECT id, list_id, type_id, title, content, url, thumbnail, created_at, updated_at
 FROM items
 WHERE id = $1
 `
@@ -140,10 +124,6 @@ func (q *Queries) GetItem(ctx context.Context, id pgtype.UUID) (Item, error) {
 		&i.Thumbnail,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.Category,
-		&i.Tags,
-		&i.Summary,
-		&i.Embedding,
 	)
 	return i, err
 }
@@ -157,7 +137,7 @@ SET
     thumbnail = COALESCE($5, thumbnail),
     updated_at = now()
 WHERE id = $1
-RETURNING id, list_id, type_id, title, content, url, thumbnail, created_at, updated_at, category, tags, summary, embedding
+RETURNING id, list_id, type_id, title, content, url, thumbnail, created_at, updated_at
 `
 
 type UpdateItemParams struct {
@@ -187,10 +167,6 @@ func (q *Queries) UpdateItem(ctx context.Context, arg UpdateItemParams) (Item, e
 		&i.Thumbnail,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.Category,
-		&i.Tags,
-		&i.Summary,
-		&i.Embedding,
 	)
 	return i, err
 }
